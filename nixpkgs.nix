@@ -20,6 +20,7 @@ let
               doctest = null;
 
               # These require doctest to run their tests.
+              lens = super.haskell.lib.dontCheck hsuper.lens;
               aeson = super.haskell.lib.dontCheck hsuper.aeson;
               http-types = super.haskell.lib.dontCheck hsuper.http-types;
               servant = super.haskell.lib.dontCheck hsuper.servant;
