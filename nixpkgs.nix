@@ -26,6 +26,7 @@ let
               servant = super.haskell.lib.dontCheck hsuper.servant;
               semigroupoids = super.haskell.lib.dontCheck hsuper.semigroupoids;
               lens = super.haskell.lib.dontCheck hsuper.lens;
+              lens-aeson = super.haskell.lib.dontCheck hsuper.lens-aeson;
 
               # These have test suites which hang indefinitely.
               scientific = super.haskell.lib.dontCheck hsuper.scientific;

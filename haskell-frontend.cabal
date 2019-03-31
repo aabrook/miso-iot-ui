@@ -20,6 +20,7 @@ common deps
     base >=4.11 && <4.12,
     miso,
     aeson,
+    lens-aeson,
     lens
 
 library
