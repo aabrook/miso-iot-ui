@@ -20,10 +20,12 @@ let
               doctest = null;
 
               # These require doctest to run their tests.
-              lens = super.haskell.lib.dontCheck hsuper.lens;
+              comonad = super.haskell.lib.dontCheck hsuper.comonad;
               aeson = super.haskell.lib.dontCheck hsuper.aeson;
               http-types = super.haskell.lib.dontCheck hsuper.http-types;
               servant = super.haskell.lib.dontCheck hsuper.servant;
+              semigroupoids = super.haskell.lib.dontCheck hsuper.semigroupoids;
+              lens = super.haskell.lib.dontCheck hsuper.lens;
 
               # These have test suites which hang indefinitely.
               scientific = super.haskell.lib.dontCheck hsuper.scientific;

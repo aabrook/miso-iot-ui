@@ -29,6 +29,8 @@ import Login as L
   , initModel
   )
 
+import Pings
+
 data Model_ = Model_
   { counter :: Int
   , login :: L.Model
