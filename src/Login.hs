@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Login
@@ -11,6 +12,14 @@ module Login
 
 import qualified Data.ByteString.Lazy
 import qualified Data.JSString
+import Control.Lens
+  ( makeLenses
+  , over
+  , set
+  , (^.)
+  , (%=)
+  )
+
 
 import qualified Miso
 import Miso
@@ -47,34 +56,36 @@ data Action
 
 data Model
   = Model
-  { bearer :: MisoString
-  , placeholder :: MisoString
-  , pingResult :: String
+  { _bearer :: MisoString
+  , _placeholder :: MisoString
+  , _pingResult :: String
   }
   deriving (Show, Eq)
 
+makeLenses ''Model
+
 initModel :: Model
-initModel = Model { bearer = "", placeholder = "", pingResult = mempty }
+initModel = Model { _bearer = mempty, _placeholder = mempty, _pingResult = mempty }
 
 update :: Action -> Model -> Effect Action Model
-update Clear model = noEff $ model { bearer = "" }
-update (Update b) model = noEff $ model { bearer = b }
-update Login model = noEff $ model { placeholder = bearer model }
-update NoOp model = noEff model
-update ShowPings m = m <# do
-  SetPings <$> query (fromMisoString $ bearer m)
-update (SetPings p) m = noEff $ m { pingResult = res p }
+update Clear model        = noEff $ set bearer "" model
+update (Update b) model   = noEff $ set bearer b model
+update Login model        = noEff $ set placeholder (model ^. bearer) model
+update NoOp model         = noEff model
+update ShowPings m        = m <# do
+                              SetPings <$> query (fromMisoString $ _bearer m)
+update (SetPings p) m     = noEff $ m { _pingResult = res p }
   where
-    res (Just v) = v
-    res Nothing = pingResult m
+    res (Just v)  = v
+    res Nothing   = m ^. pingResult
 
 view :: Model -> View Action
 view model = div_
   []
-  [ input_ [ onChange Update, value_ $ bearer model ]
+  [ input_ [ onChange Update, value_ $ _bearer model ]
   , button_ [ onClick Login ] [ text "Login" ]
   , button_ [ onClick Clear ] [ text "Clear" ]
-  , text (placeholder model)
+  , text (_placeholder model)
   , button_ [ onClick ShowPings ] [ text "Show Pings" ]
-  , text . ms $ pingResult model
+  , text . ms $ _pingResult model
   ]

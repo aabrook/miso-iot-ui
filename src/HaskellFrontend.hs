@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module HaskellFrontend
@@ -6,6 +7,13 @@ module HaskellFrontend
   ) where
 
 import Data.Bifunctor (bimap)
+import Control.Lens as Lens
+  ( set
+  , view
+  , makeLenses
+  , (^.)
+  , (.=)
+  )
 import qualified Miso
 import Miso
   ( App(App)
@@ -32,15 +40,14 @@ import Login as L
 import Pings
 
 data Model_ = Model_
-  { counter :: Int
-  , login :: L.Model
+  { _login :: L.Model
   }
   deriving (Show, Eq)
 
+makeLenses ''Model_
+
 data Action_
-  = AddOne
-  | SubtractOne
-  | NoOp
+  = NoOp
   | LoginActions L.Action
   deriving (Show, Eq)
 
@@ -48,7 +55,7 @@ main :: IO ()
 main =
   startApp App
     { Miso.initialAction = NoOp
-    , Miso.model         = Model_ { counter = 0, login = L.initModel }
+    , Miso.model         = Model_ { _login = L.initModel }
     , Miso.update        = HaskellFrontend.update
     , Miso.view          = HaskellFrontend.view
     , Miso.events        = defaultEvents
@@ -57,19 +64,15 @@ main =
     }
 
 update :: Action_ -> Model_ -> Effect Action_ Model_
-update AddOne model = noEff $ model { counter = ((counter model) + 1) }
-update SubtractOne model = noEff $ model { counter = ((counter model) - 1) }
-update NoOp m = noEff m
-update (LoginActions actions) m = updated
+update NoOp m                   = noEff m
+update (LoginActions actions) m = loginUpdate m
   where
-    result = L.update actions (login m)
-    updated = bimap LoginActions (\e -> m { login = e }) result
+    setLogin e    = Lens.set login e m
+    runUpdate m   = L.update actions (m ^. login)
+    loginUpdate m = bimap LoginActions setLogin (runUpdate m)
 
 view :: Model_ -> View Action_
 view x = div_
   []
-  [ button_ [onClick AddOne] [text "+"]
-  , text (ms $ counter x)
-  , button_ [onClick SubtractOne] [text "-"]
-  , LoginActions <$> (L.view $ login x)
+  [ LoginActions <$> (L.view $ Lens.view login x)
   ]
