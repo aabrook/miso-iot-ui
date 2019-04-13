@@ -10,14 +10,23 @@ module Login
   , initModel
   ) where
 
+import Prelude hiding (lookup)
 import qualified Data.ByteString.Lazy
 import qualified Data.JSString
+import Data.Bifunctor (bimap)
+import Control.Monad.Reader
 import Control.Lens
   ( makeLenses
   , over
   , set
   , (^.)
   , (%=)
+  )
+import Data.Map
+  ( Map
+  , fromList
+  , lookup
+  , singleton
   )
 
 
@@ -35,6 +44,7 @@ import Miso
   , startApp
   , text
   , input_
+  , style_
   , value_
   , (<#)
   )
@@ -79,13 +89,36 @@ update (SetPings p) m     = noEff $ m { _pingResult = res p }
     res (Just v)  = v
     res Nothing   = m ^. pingResult
 
-view :: Model -> View Action
-view model = div_
-  []
-  [ input_ [ onChange Update, value_ $ _bearer model ]
-  , button_ [ onClick Login ] [ text "Login" ]
-  , button_ [ onClick Clear ] [ text "Clear" ]
-  , text (_placeholder model)
-  , button_ [ onClick ShowPings ] [ text "Show Pings" ]
-  , text . ms $ _pingResult model
+styles = fromList
+  [ ("margin", "15px auto")
+  , ("width", "50%")
+  , ("border-radius", "15px")
+  , ("box-shadow", "0 -3px 31px 0 rgba(0, 0, 0, 0.05), 0 6px 20px 0 rgba(0, 0, 0, 0.02)")
+  , ("background-color", "#f9f9f9")
+  , ("padding", "15px")
   ]
+
+buttonStyles = fromList
+  [ ("margin", "auto")
+  , ("width", "80px")
+  ]
+
+inputStyles = fromList [("width", "180px")] <> buttonStyles
+
+btn :: Map String (Map String String) -> Map String String
+btn mp = maybe mempty id $ lookup ("btn") mp
+
+baseView :: Map String (Map String String) -> Model -> View Action
+baseView styling model = div_
+    [ style_ styles ]
+    [ div_ [style_ inputStyles] [input_ [ onChange Update, value_ $ _bearer model ]]
+    , div_ [ style_ buttonStyles ] [button_ [ onClick Login ] [ text "Login" ]]
+    , div_ [ style_ buttonStyles ] [button_ [ onClick Clear ] [ text "Clear" ]]
+    , text (_placeholder model)
+    , button_ [ onClick ShowPings ] [ text "Show Pings" ]
+    , text . ms $ _pingResult model
+    ]
+view :: Reader (Map String (Map String String)) (Model -> View Action)
+view = do
+  styling <- ask
+  return $ baseView styling
