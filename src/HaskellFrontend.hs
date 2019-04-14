@@ -33,7 +33,7 @@ import Miso
   , startApp
   , text
   )
-import Miso.String (ms)
+import Miso.String (MisoString, ms)
 
 import Login as L
   ( Model
@@ -60,33 +60,30 @@ data Action_
   | LoginActions L.Action
   deriving (Show, Eq)
 
-styles = fromList
-  [ ("margin", "15px auto")
-  , ("width", "50%")
-  , ("border-radius", "15px")
-  , ("box-shadow", "0 -3px 31px 0 rgba(0, 0, 0, 0.05), 0 6px 20px 0 rgba(0, 0, 0, 0.02)")
-  , ("background-color", "#f9f9f9")
-  , ("padding", "15px")
-  ]
-
-buttonStyles = fromList $ toStyle <$>
+buttonStyles = fromList $ toMsStyle <$>
   [ MarginLeft Auto
   , MarginRight Auto
   , Width (Px 80)
   ]
 
-inputStyles = (fromList $ (toStyle <$> [Width (Px 180)])) <> buttonStyles
+inputStyles = (fromList $ (toMsStyle <$> [Width (Px 180)])) <> buttonStyles
 
-baseStyles :: Map String (Map String String)
+baseStyles :: Map String (Map MisoString MisoString)
 baseStyles = fromList [
     ("btn", fromList
-      $ toStyle <$> [
+      $ toMsStyle <$> [
         MarginLeft Auto
       , MarginRight Auto
       , Width (Px 80)
       , BackgroundColor (Raw "gray")
     ])
     , ("input", inputStyles)]
+
+boxStyle = toMsStyle <$> [
+  BackgroundColor (Hex "505458")
+  , MinHeight (Px 130)
+  , Padding (Px 15) Blank Blank Blank
+  ]
 
 main :: IO ()
 main =
@@ -110,6 +107,6 @@ update (LoginActions actions) m = loginUpdate m
 
 view :: Model_ -> View Action_
 view x = div_
-  [ style_ $ fromList [("background-color", "#505458"), ("min-height", "130px"), ("padding", "15px")]]
+  [ style_ $ fromList boxStyle ]
   [ div_ [] $ [ LoginActions <$> ((runReader (L.view >>= \f -> return $ f $ x ^. login)) baseStyles) ]
   ]

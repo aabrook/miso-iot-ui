@@ -105,10 +105,10 @@ buttonStyles = fromList
 
 inputStyles = fromList [("width", "180px")] <> buttonStyles
 
-btn :: Map String (Map String String) -> Map String String
+btn :: Map String (Map MisoString MisoString) -> Map MisoString MisoString
 btn mp = maybe mempty id $ lookup ("btn") mp
 
-baseView :: Map String (Map String String) -> Model -> View Action
+baseView :: Map String (Map MisoString MisoString) -> Model -> View Action
 baseView styling model = div_
     [ style_ styles ]
     [ div_ [style_ inputStyles] [input_ [ onChange Update, value_ $ _bearer model ]]
@@ -118,7 +118,7 @@ baseView styling model = div_
     , button_ [ onClick ShowPings ] [ text "Show Pings" ]
     , text . ms $ _pingResult model
     ]
-view :: Reader (Map String (Map String String)) (Model -> View Action)
+view :: Reader (Map String (Map MisoString MisoString)) (Model -> View Action)
 view = do
   styling <- ask
   return $ baseView styling
